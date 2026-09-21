@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>COEP Girlie's Starter Pack 🎀</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#FFB5C8">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="COEP Map 🎀">
+<link rel="apple-touch-icon" href="icon-512.png">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{position:fixed;inset:0;overflow:hidden;font-family:'Nunito',sans-serif;background:#F0EBE3}
+body{display:flex;flex-direction:column;width:100%;height:100%}
+
+#hdr{
+  flex-shrink:0;text-align:center;padding:13px 16px 10px;z-index:10;
+  background:linear-gradient(120deg,#FFB5C8 0%,#DEC5F0 55%,#A8CDEF 100%);
+  box-shadow:0 3px 20px rgba(180,100,160,0.2);
+}
+#hdr h1{font-family:'Playfair Display',serif;font-size:21px;color:#4A1A50;line-height:1.2}
+#hdr p{font-size:11px;color:#7A4A8A;margin-top:3px;font-weight:600}
+
+#legend{
+  flex-shrink:0;display:flex;flex-wrap:wrap;gap:5px;padding:7px 10px;
+  background:rgba(255,252,255,0.96);border-bottom:1px solid #EDD8F0;
+  justify-content:center;z-index:10;
+}
+.lb{
+  display:flex;align-items:center;gap:4px;padding:3px 9px;
+  border-radius:20px;border:2px solid;cursor:pointer;
+  font-size:10.5px;font-weight:700;font-family:'Nunito',sans-serif;
+  transition:opacity .2s;user-select:none;
+}
+.ld{width:8px;height:8px;border-radius:50%}
+
+#wrap{flex:1;position:relative;overflow:hidden;touch-action:none}
+canvas{position:absolute;inset:0;width:100%;height:100%}
+
+.mk{position:absolute;transform:translate(-50%,-100%);cursor:pointer;z-index:5}
+.pin{
+  display:flex;align-items:center;justify-content:center;
+  border-radius:50% 50% 50% 0;transform:rotate(-45deg);
+  border:2.5px solid white;box-shadow:0 3px 12px rgba(0,0,0,.22);
+}
+.pin span{transform:rotate(45deg);line-height:1}
+
+#pop{
+  position:absolute;z-index:20;width:268px;background:white;
+  border-radius:18px;overflow:hidden;
+  box-shadow:0 10px 40px rgba(90,20,90,.2);display:none;
+}
+.ph{height:95px;display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden}
+.pb2{position:absolute;border-radius:50%;background:rgba(255,255,255,.18)}
+.pe{position:relative;z-index:2;font-size:42px}
+.pb{padding:12px 14px 13px;background:white}
+.pbadge{font-size:9px;font-weight:800;letter-spacing:.09em;text-transform:uppercase;padding:2px 8px;border-radius:10px;display:inline-block;margin-bottom:5px}
+.pname{font-family:'Playfair Display',serif;font-size:14.5px;font-weight:700;color:#2A1A2E;margin-bottom:7px;line-height:1.3}
+.prow{display:flex;align-items:flex-start;gap:6px;font-size:11px;color:#4A3A4A;line-height:1.4;margin-bottom:4px}
+.pdist{font-weight:800;color:#9B3A9B}
+.prat{margin-left:5px;color:#B07A20;font-weight:700}
+.pdesc{font-style:italic;color:#7A6A7A;font-size:10px;line-height:1.5;margin-top:7px;padding-top:7px;border-top:1px solid #F0E5F5}
+.pbtn{margin-top:9px;display:block;text-align:center;background:linear-gradient(120deg,#F4A0BC,#C08ADF);color:white;padding:7px;border-radius:10px;font-size:11.5px;font-weight:800;text-decoration:none}
+.pcls{position:absolute;top:7px;right:9px;z-index:30;background:rgba(255,255,255,.85);border:none;cursor:pointer;width:24px;height:24px;border-radius:50%;font-size:13px;display:flex;align-items:center;justify-content:center}
+
+#zbtns{position:absolute;right:10px;bottom:18px;z-index:15;display:flex;flex-direction:column;gap:5px}
+.zb{width:36px;height:36px;background:white;border:none;border-radius:9px;cursor:pointer;font-size:22px;font-weight:300;box-shadow:0 2px 10px rgba(0,0,0,.14);display:flex;align-items:center;justify-content:center;font-family:'Nunito',sans-serif}
+</style>
+</head>
+<body>
+<div id="hdr">
+  <h1>🎀 COEP Girlie's Starter Pack</h1>
+  <p>Everything you need to survive & thrive in Pune ✨ — tap any pin!</p>
+</div>
+<div id="legend"></div>
+<div id="wrap">
+  <canvas id="cv"></canvas>
+  <div id="ml"></div>
+  <div id="pop">
+    <button class="pcls" onclick="closePop()">✕</button>
+    <div class="ph" id="phead"><div id="pbubs"></div><div class="pe" id="pemoji"></div></div>
+    <div class="pb">
+      <span class="pbadge" id="pbadge"></span>
+      <div class="pname" id="pname"></div>
+      <div class="prow"><span>📍</span><span id="paddr"></span></div>
+      <div class="prow"><span>📏</span><span class="pdist" id="pdist"></span><span class="prat" id="prat"></span></div>
+      <div class="prow"><span>🕐</span><span id="phours"></span></div>
+      <div class="pdesc" id="pdesc"></div>
+      <a class="pbtn" id="pbtn" target="_blank">🗺️ Get Directions in Google Maps</a>
+    </div>
+  </div>
+  <div id="zbtns">
+    <button class="zb" onclick="dz(1)">+</button>
+    <button class="zb" onclick="dz(-1)">−</button>
+  </div>
+</div>
+<script>
+const CAT={
+  college: {l:'My College',   e:'🎓',p:'#E8723C',s:'#FFE5D0',t:'#7A2E08',g:'linear-gradient(135deg,#FFCC99,#FF9A4C)'},
+  cafe:    {l:'Cafés & Food', e:'☕',p:'#C2336A',s:'#FFD6E4',t:'#7A0A34',g:'linear-gradient(135deg,#FFAEC9,#F06090)'},
+  health:  {l:'Healthcare',   e:'💊',p:'#7A46B8',s:'#EAD8F8',t:'#3A0A6A',g:'linear-gradient(135deg,#CFAEE8,#9B6ACF)'},
+  touristy:{l:'Must Visit',   e:'🌿',p:'#2E8B5A',s:'#C0EDD8',t:'#0A4A28',g:'linear-gradient(135deg,#8FD9B4,#50B882)'},
+  temple:  {l:'Temple',       e:'🛕',p:'#5A4AB8',s:'#DAD5F8',t:'#1A0A7A',g:'linear-gradient(135deg,#B8AEEE,#7C6ED4)'},
+  cinema:  {l:'Cinema',       e:'🎬',p:'#2E6EB8',s:'#C0D8F8',t:'#0A2A6A',g:'linear-gradient(135deg,#8EC6F0,#50A0DC)'},
+  grocery: {l:'Grocery',      e:'🛒',p:'#2A8A4A',s:'#D4F5E0',t:'#0A4020',g:'linear-gradient(135deg,#A8E6C0,#5AC888)'},
+  atm:     {l:'ATM / Bank',   e:'🏦',p:'#0E7490',s:'#C0EEF8',t:'#063A4A',g:'linear-gradient(135deg,#7DD3E8,#22A8C8)'},
+};
+
+const PL=[
+  {n:'COEP Technological University',c:'college',la:18.5306824,ln:73.8572521,a:'Wellesley Rd, Shivajinagar, Pune 411005',h:'Mon–Sat: 10 AM – 5:30 PM',d:'Established in 1854 — the 3rd oldest engineering college in India. Campus sits along the Mula-Mutha Rivers with stunning colonial buildings and modern labs. Next to Shivajinagar Metro. Welcome home.',r:'4.6'},
+  {n:'Vaishali Restaurant',c:'cafe',la:18.5208789,ln:73.84123699,a:'1218/1, Ferguson College Rd, Ganeshwadi, Shivajinagar',h:'Daily: 7 AM – 11 PM',d:'The most iconic restaurant on FC Road. 18,000+ reviews and a queue every weekend — still worth it. Order the Mysore Masala Dosa, Medu Vada, and cold kokum soda. A Pune rite of passage.',r:'4.3'},
+  {n:'Bookavibe — Book Café & Co-working',c:'cafe',la:18.5211504,ln:73.8416961,a:'Ground Floor, Rachana Tulips, FC Rd, behind Times of India, Shivajinagar',h:'Daily: 10 AM – 10:30 PM',d:'₹200/person for 6 hours of cosy co-working with books, board games, and excellent coffee. Hazelnut latte is non-negotiable. Perfect for those 3-assignment days when the hostel feels impossible.',r:'4.7'},
+  {n:'FC Road SOCIAL',c:'cafe',la:18.5289235,ln:73.8436489,a:'Unit 101, 1st Floor, Cello Platina, Ferguson College Rd, Shivajinagar',h:'Daily: 11 AM – 1:30 AM',d:"Pune's most popular college hangout. Quirky industrial decor, great food till 1:30AM. Loaded nachos and Korean chicken burger are crowd favourites. Default plan for any occasion.",r:'4.1'},
+  {n:'Savannah — Garden Restaurant & Café',c:'cafe',la:18.5239146,ln:73.8424675,a:'1201/A/4, GH Patil Path, Shivajinagar',h:'Daily: 11 AM – 12:30 AM',d:'Fairy lights between trees, beautiful outdoor garden seating, and a menu that delivers. The Fiery Mushroom Pepper and Vietnamese coffee are unmissable. A full evening destination.',r:'4.4'},
+  {n:'Cibbo — All Day Social',c:'cafe',la:18.5247912,ln:73.8415989,a:'6A, 1195/C, Ferguson College Rd, Shivajinagar',h:'Daily: 12 PM – 12 AM',d:"FC Road's most aesthetically put-together café. Great for dates and small groups. Avocado Toast, Aglio Olio pasta and Tres Leches are regulars. Mist cooling system in summer — a blessing.",r:'4.3'},
+  {n:'Mutuswami Café',c:'cafe',la:18.5204012,ln:73.843553,a:'Ramee Grand Hotel, 3, Apte Rd, Shivajinagar',h:'Open 24 Hours',d:'24/7 South Indian comfort food. The filter coffee is the real reason people keep coming back. Idli, dosa, uttapam — all made fresh. Your 7AM breakfast plan before an 8AM lecture.',r:'4.6'},
+  {n:'Prasadam, FC Road',c:'cafe',la:18.5303611,ln:73.8437729,a:'Elite Colossal, FC Rd, opp. Shivajinagar Police Ground, Model Colony',h:'Daily: 6:30 AM – 10:30 PM',d:'Opens at 6:30AM with some of the most authentic Udupi food in Pune. Crispy dosas, pillowy idlis, chutneys that taste handmade. Closest proper breakfast spot to COEP gate.',r:'4.4'},
+  {n:'Sancheti Hospital',c:'health',la:18.5299624,ln:73.852979,a:'16, Narveer Tanaji Wadi, Shivajinagar, Pune',h:'Open 24 Hours',d:"One of Pune's best hospitals — 24 hours, 8,900+ reviews at 4.6⭐. Premier care for orthopaedic and general emergencies. Clean, well-staffed. Your most trusted option for anything serious.",r:'4.6'},
+  {n:'Wellness Forever Pharmacy',c:'health',la:18.5264604,ln:73.8421379,a:'Shop 4, Ground Floor, FC Road, Sud Nagar, Shivajinagar',h:'Open 24 Hours',d:'Only 24-hour pharmacy in the immediate FC Road area. Well stocked with most common medicines and essentials. Good for late-night needs when nothing else is open.',r:'3.9'},
+  {n:'Pataleshwar Caves',c:'touristy',la:18.5269827,ln:73.8498851,a:'Jangali Maharaj Rd, Revenue Colony, Pune',h:'Daily: 8 AM – 8 PM · Free Entry',d:"A 1,200-year-old rock-cut Shiva temple carved from a single basalt rock — right in the middle of the city. The circular Nandi Mandapa is stunning. Peaceful, cool, and free. Pune's best kept secret.",r:'4.7'},
+  {n:'Lal Mahal',c:'touristy',la:18.5187433,ln:73.8566483,a:'Chhatrapati Shivaji Maharaj Rd, Kasba Peth, Pune',h:'Daily: 9 AM – 6 PM · Free Entry',d:'The childhood home of Chhatrapati Shivaji Maharaj. Beautiful heritage reconstruction with paintings, statues, and exhibits on the Maratha Empire. Free entry, peaceful premises.',r:'4.5'},
+  {n:'Mahatma Phule Museum',c:'touristy',la:18.5237118,ln:73.8456291,a:'1204/10, Ghole Rd, Shivajinagar, Pune',h:'Daily: 9 AM – 5 PM · ₹10 Entry',d:'One of the oldest museums in India — established 1890. Geology, natural history, vintage machinery, agricultural tools, and weaponry. ₹10 entry and genuinely fascinating. Great to visit with family.',r:'4.1'},
+  {n:'Shree Omkareshwar Temple',c:'temple',la:18.5199001,ln:73.8489738,a:'Near Balgandharva Bridge, Shaniwar Peth, Pune',h:'6 AM – 1 PM · 4 PM – 10 PM',d:"The largest and oldest Shiva temple in Pune — built by Chimaji Appa Peshwa in the 18th century. Sits on the banks of the Mutha River. The evening aarti is especially beautiful.",r:'4.7'},
+  {n:'Jangli Maharaj Samadhi Temple',c:'temple',la:18.5265763,ln:73.8504224,a:'JM Road, Revenue Colony, Pune (the road is named after this temple)',h:'6 AM – 1 PM · 4 PM – 9 PM',d:'Peaceful and calm despite being on one of Pune\'s busiest roads. Right next to Pataleshwar Caves — visit both on the same walk. A genuine pocket of quiet in the city.',r:'4.7'},
+  {n:'PVR ICON — Pavilion Mall',c:'cinema',la:18.5337986,ln:73.8299212,a:'3rd Floor, Pavilion Mall, Senapati Bapat Rd, Shivajinagar',h:'Daily: 9 AM – 2 AM',d:'The best cinema experience in Pune — recliners, Dolby sound, massive screens, open till 2AM. Worth every extra rupee for films that deserve a proper event.',r:'4.5'},
+  {n:'Rahul 70MM',c:'cinema',la:18.5315026,ln:73.8464694,a:'3, Ganeshkhind Rd, Narveer Tanaji Wadi, Shivajinagar',h:'Shows from morning to late night',d:"Old-school Pune cinema with a legendary big screen and budget-friendly tickets. No recliners, no luxury — but a genuine experience regular multiplexes can't replicate. Popular with students.",r:'3.8'},
+  {n:'Om Super Market',c:'grocery',la:18.5328736,ln:73.8340346,a:'Gokhale Cross Road, Gokhale Rd, Model Colony, Shivajinagar',h:'Mon–Sat: 7:30 AM – 10:30 PM · Sun: till 11 PM',d:'The iconic neighbourhood grocery store near COEP. Fresh vegetables and dairy on-site. Has home delivery. Serving the Shivajinagar student community for decades.',r:'3.9'},
+  {n:'Vijay Market',c:'grocery',la:18.523134,ln:73.8477364,a:'7/69/2, Pragati Bhavan, Ghole Rd, Shivajinagar',h:'Daily: 8 AM – 10:15 PM',d:'Friendly local grocery with fresh produce and all daily essentials. Staff are helpful, prices are fair. Clean, reliable, and convenient from FC Road.',r:'4.1'},
+  {n:'HDFC Bank ATM',c:'atm',la:18.5282708,ln:73.8432179,a:'No 1185/13, FC Road, opposite Hotel Lalit Mahal, Shivajinagar',h:'Open 24 Hours',d:'24-hour HDFC ATM right on FC Road — most conveniently located near COEP. In the middle of everything you\'ll already be visiting. Note for late-night cash needs after SOCIAL or Bookavibe.',r:null},
+];
+
+// Approximate roads for Shivajinagar / FC Road / COEP area
+const ROADS=[
+  {pts:[[18.511,73.841],[18.515,73.841],[18.519,73.841],[18.521,73.841],[18.524,73.842],[18.527,73.843],[18.530,73.844],[18.533,73.844]],w:5,col:'#D4CCC2'},
+  {pts:[[18.527,73.829],[18.527,73.833],[18.527,73.838],[18.527,73.843],[18.528,73.848],[18.529,73.852],[18.530,73.857]],w:5,col:'#D4CCC2'},
+  {pts:[[18.515,73.830],[18.520,73.830],[18.525,73.830],[18.530,73.830],[18.536,73.830]],w:4,col:'#D4CCC2'},
+  {pts:[[18.521,73.843],[18.521,73.847],[18.521,73.851],[18.521,73.857]],w:3,col:'#DDD7CF'},
+  {pts:[[18.530,73.844],[18.530,73.848],[18.531,73.853],[18.531,73.857],[18.531,73.861]],w:3.5,col:'#D4CCC2'},
+  {pts:[[18.528,73.857],[18.531,73.857],[18.535,73.857]],w:3,col:'#D4CCC2'},
+  {pts:[[18.534,73.839],[18.534,73.845],[18.534,73.851],[18.534,73.857],[18.533,73.863]],w:7,col:'#B8D4EC',rv:1},
+  {pts:[[18.519,73.836],[18.520,73.842],[18.520,73.848],[18.520,73.855],[18.519,73.862]],w:5,col:'#B8D4EC',rv:1},
+];
+
+// Projection
+function mcy(lat){const s=Math.sin(lat*Math.PI/180);return Math.log((1+s)/(1-s))/2}
+function ll2w(lat,lng,z){
+  const sc=256*Math.pow(2,z);
+  return{x:(lng+180)/360*sc,y:(1-mcy(lat)/Math.PI)/2*sc}
+}
+
+// State
+let Z=14.5, CLat=18.527, CLng=73.847, PX=0, PY=0;
+const active=new Set(Object.keys(CAT));
+
+const cv=document.getElementById('cv');
+const ctx=cv.getContext('2d');
+const wrap=document.getElementById('wrap');
+const ml=document.getElementById('ml');
+const pop=document.getElementById('pop');
+
+function W(){return wrap.clientWidth}
+function H(){return wrap.clientHeight}
+
+function ll2px(lat,lng){
+  const c=ll2w(CLat,CLng,Z),p=ll2w(lat,lng,Z);
+  return{x:p.x-c.x+W()/2+PX,y:p.y-c.y+H()/2+PY}
+}
+
+function drawBase(){
+  cv.width=W();cv.height=H();
+  // bg
+  ctx.fillStyle='#F0EBE3';ctx.fillRect(0,0,W(),H());
+  // dot grid
+  ctx.fillStyle='#E5DFD6';
+  for(let x=9;x<W();x+=18)for(let y=9;y<H();y+=18){ctx.beginPath();ctx.arc(x,y,.7,0,Math.PI*2);ctx.fill()}
+  // roads
+  ROADS.forEach(r=>{
+    const pts=r.pts.map(([la,ln])=>ll2px(la,ln));
+    ctx.beginPath();pts.forEach((p,i)=>i?ctx.lineTo(p.x,p.y):ctx.moveTo(p.x,p.y));
+    ctx.strokeStyle=r.rv?'#C8DFF0':'#E8E2D9';ctx.lineWidth=(r.w*(Z/14));ctx.lineCap='round';ctx.lineJoin='round';ctx.stroke();
+    if(!r.rv){ctx.strokeStyle=r.col;ctx.lineWidth=(r.w*(Z/14))*.55;ctx.stroke()}
+  });
+  // watermark
+  ctx.font='11px sans-serif';ctx.fillStyle='rgba(155,142,128,.28)';ctx.fillText('Shivajinagar · Pune',12,H()-12);
+}
+
+function haversine(la1,lo1,la2,lo2){
+  const R=6371,r=Math.PI/180;
+  const a=Math.sin((la2-la1)*r/2)**2+Math.cos(la1*r)*Math.cos(la2*r)*Math.sin((lo2-lo1)*r/2)**2;
+  const d=R*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));
+  return d<1?`${Math.round(d*1000)} m away`:`${d.toFixed(1)} km away`
+}
+
+function mkMarkers(){
+  ml.innerHTML='';
+  PL.forEach((p,i)=>{
+    const c=CAT[p.c],isC=p.c==='college',sz=isC?44:36;
+    const el=document.createElement('div');
+    el.className='mk';el.dataset.i=i;el.dataset.c=p.c;
+    el.style.display=active.has(p.c)?'block':'none';
+    const shadow=isC?`0 0 0 3px white,0 0 0 6px ${c.p},0 5px 18px rgba(0,0,0,.28)`:`0 3px 12px rgba(0,0,0,.22)`;
+    el.innerHTML=`<div class="pin" style="width:${sz}px;height:${sz}px;background:${c.p};box-shadow:${shadow}"><span style="font-size:${isC?20:16}px">${c.e}</span></div>`;
+    el.addEventListener('click',e=>{e.stopPropagation();openPop(i,el)});
+    ml.appendChild(el);
+  });
+}
+
+function updMk(){
+  ml.querySelectorAll('.mk').forEach(el=>{
+    const p=PL[el.dataset.i];
+    const{x,y}=ll2px(p.la,p.ln);
+    el.style.left=x+'px';el.style.top=y+'px';
+  });
+}
+
+function openPop(i,mel){
+  const p=PL[i],c=CAT[p.c];
+  const{x,y}=ll2px(p.la,p.ln);
+  const d=haversine(18.5306824,73.8572521,p.la,p.ln);
+  document.getElementById('phead').style.background=c.g;
+  document.getElementById('pemoji').textContent=c.e;
+  const badge=document.getElementById('pbadge');badge.textContent=c.l;badge.style.background=c.s;badge.style.color=c.t;
+  document.getElementById('pname').textContent=p.n;
+  document.getElementById('paddr').textContent=p.a;
+  document.getElementById('pdist').textContent=d;
+  document.getElementById('prat').textContent=p.r?'⭐ '+p.r:'';
+  document.getElementById('phours').textContent=p.h;
+  document.getElementById('pdesc').textContent=p.d;
+  document.getElementById('pbtn').href=`https://www.google.com/maps/dir/?api=1&destination=${p.la},${p.ln}`;
+  document.getElementById('pbubs').innerHTML=[{w:60,h:60,t:'-18px',l:'-12px'},{w:40,h:40,t:'55px',l:'208px'},{w:28,h:28,t:'5px',l:'172px'},{w:50,h:50,t:'62px',l:'-8px'}].map(b=>`<div class="pb2" style="width:${b.w}px;height:${b.h}px;top:${b.t};left:${b.l};opacity:.18"></div>`).join('');
+  const pw=268,ph=320;
+  let lf=Math.max(8,Math.min(W()-pw-8,x-pw/2));
+  let tp=Math.max(8,y-44-12-ph);
+  if(tp<8)tp=y+12;
+  pop.style.cssText=`display:block;left:${lf}px;top:${tp}px`;
+}
+
+function closePop(){pop.style.display='none'}
+wrap.addEventListener('click',closePop);
+
+// Pan
+let drag=false,lx,ly;
+wrap.addEventListener('mousedown',e=>{drag=true;lx=e.clientX;ly=e.clientY;e.preventDefault()});
+window.addEventListener('mouseup',()=>drag=false);
+window.addEventListener('mousemove',e=>{if(!drag)return;PX+=e.clientX-lx;PY+=e.clientY-ly;lx=e.clientX;ly=e.clientY;redraw()});
+wrap.addEventListener('wheel',e=>{e.preventDefault();Z=Math.max(12,Math.min(18,Z-e.deltaY*.003));redraw()},{passive:false});
+
+// Touch
+let lt=[],lpd=0;
+wrap.addEventListener('touchstart',e=>{
+  if(e.touches.length===2){lpd=Math.hypot(e.touches[0].clientX-e.touches[1].clientX,e.touches[0].clientY-e.touches[1].clientY)}
+  else{lx=e.touches[0].clientX;ly=e.touches[0].clientY}
+},{passive:true});
+wrap.addEventListener('touchmove',e=>{
+  e.preventDefault();
+  if(e.touches.length===2){
+    const d=Math.hypot(e.touches[0].clientX-e.touches[1].clientX,e.touches[0].clientY-e.touches[1].clientY);
+    Z=Math.max(12,Math.min(18,Z+Math.log2(d/lpd)));lpd=d;closePop();
+  }else{
+    PX+=e.touches[0].clientX-lx;PY+=e.touches[0].clientY-ly;
+    lx=e.touches[0].clientX;ly=e.touches[0].clientY;closePop();
+  }
+  redraw();
+},{passive:false});
+
+function dz(dir){Z=Math.max(12,Math.min(18,Z+dir));closePop();redraw()}
+
+function redraw(){drawBase();updMk()}
+
+// Legend
+const leg=document.getElementById('legend');
+Object.entries(CAT).forEach(([k,c])=>{
+  const b=document.createElement('button');b.className='lb';
+  b.style.cssText=`background:${c.s};color:${c.t};border-color:${c.p}`;
+  b.innerHTML=`<div class="ld" style="background:${c.p}"></div>${c.e} ${c.l}`;
+  b.addEventListener('click',()=>{
+    if(active.has(k)){active.delete(k);b.style.opacity='.4';b.style.borderColor='transparent'}
+    else{active.add(k);b.style.opacity='1';b.style.borderColor=c.p}
+    ml.querySelectorAll(`.mk[data-c="${k}"]`).forEach(el=>el.style.display=active.has(k)?'block':'none');
+  });
+  leg.appendChild(b);
+});
+
+function fixHeight(){
+  const hh=document.getElementById('hdr').offsetHeight;
+  const lh=document.getElementById('legend').offsetHeight;
+  wrap.style.height=(window.innerHeight-hh-lh)+'px';
+}
+window.addEventListener('resize',()=>{fixHeight();redraw()});
+fixHeight();mkMarkers();redraw();
+</script>
+<script>
+if('serviceWorker' in navigator){
+  window.addEventListener('load',()=>{
+    navigator.serviceWorker.register('./sw.js')
+      .then(()=>console.log('✅ COEP Map installed offline'))
+      .catch(e=>console.log('SW error:',e));
+  });
+}
+</script>
+</body>
+</html>
